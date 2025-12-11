@@ -6,11 +6,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Encapsulates logic to find most active cookies for a target date.
  */
 public final class CookieCounter {
+
+    private static final Logger LOGGER = Logger.getLogger(CookieCounter.class.getName());
 
     private CookieCounter() {
     }
@@ -30,9 +34,14 @@ public final class CookieCounter {
 
         Map<String, Integer> counts = new HashMap<>();
 
+        int linesRead = 0;
+        int matchedLines = 0;
+
         try (BufferedReader br = Files.newBufferedReader(file)) {
+            LOGGER.log(Level.FINE, "Scanning file {0} for date {1}", new Object[] { file, targetDate });
             String line;
             while ((line = br.readLine()) != null) {
+                linesRead++;
                 var parsed = CsvLineParser.parse(line);
                 if (parsed.isEmpty()) {
                     // skip malformed/header lines
@@ -42,15 +51,21 @@ public final class CookieCounter {
                 LocalDate lineDate = rec.date();
                 if (lineDate.isEqual(targetDate)) {
                     counts.merge(rec.cookie(), 1, Integer::sum);
+                    matchedLines++;
                     continue;
                 }
                 // If file sorted most-recent-first and we find a date before target -> stop
                 if (lineDate.isBefore(targetDate)) {
+                    LOGGER.log(Level.FINE, "Encountered earlier date {0} at line {1}; stopping scan (early stop)",
+                            new Object[] { lineDate, linesRead });
                     break;
                 }
                 // else lineDate is after targetDate -> continue scanning
             }
         }
+
+        LOGGER.log(Level.FINE, "Finished scanning. linesRead={0}, matchedLines={1}, uniqueCookies={2}",
+                new Object[] { linesRead, matchedLines, counts.size() });
 
         if (counts.isEmpty())
             return Collections.emptyList();

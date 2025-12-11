@@ -5,10 +5,19 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class Main {
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+        // basic logging of arguments (level FINE)
+        if (args != null) {
+            LOGGER.log(Level.FINE, "Application started with args: {0}", String.join(" ", args));
+        } else {
+            LOGGER.fine("Application started with null args");
+        }
         if (args == null) {
             System.err.println("Arguments required: -f <file> -d <YYYY-MM-DD>");
             System.exit(2);
@@ -41,12 +50,14 @@ public final class Main {
 
         if (fileArg == null || dateArg == null) {
             System.err.println("Both -f <file> and -d <YYYY-MM-DD> are required.");
+            LOGGER.severe("Missing required arguments");
             System.exit(2);
         }
 
         Path path = Path.of(fileArg);
         if (!Files.exists(path)) {
             System.err.printf("File does not exist: %s%n", fileArg);
+            LOGGER.severe("File not found: " + fileArg);
             System.exit(2);
         }
 
@@ -55,6 +66,7 @@ public final class Main {
             targetDate = LocalDate.parse(dateArg);
         } catch (DateTimeParseException ex) {
             System.err.printf("Invalid date format. Expected YYYY-MM-DD, got: %s%n", dateArg);
+            LOGGER.log(Level.SEVERE, "Invalid date format: {0}", dateArg);
             System.exit(2);
             return;
         }
@@ -67,6 +79,7 @@ public final class Main {
             // If none found: print nothing (exit 0)
         } catch (Exception ex) {
             System.err.printf("Error processing file: %s%n", ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error processing file", ex);
             System.exit(1);
         }
     }
