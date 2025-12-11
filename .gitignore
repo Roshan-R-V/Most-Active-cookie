@@ -3,6 +3,18 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Logging ###
+logging.properties
+*.log
+logs/
+
+### Build artifacts ###
+*.jar
+*.class
+
+### OS artifacts ###
+Thumbs.db
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
